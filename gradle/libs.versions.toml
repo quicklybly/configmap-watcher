@@ -1,0 +1,39 @@
+[versions]
+kotlin = "2.4.0"
+dokka = "2.1.0"
+springBoot = "4.1.0"
+springCloud = "2025.1.2"
+kotlinLogging = "7.0.3"
+mockk = "1.14.11"
+awaitility = "4.3.0"
+assertj = "3.27.7"
+
+[libraries]
+# Platforms. Every module imports both so versions below can stay unspecified.
+spring-boot-bom = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "springBoot" }
+spring-cloud-bom = { module = "org.springframework.cloud:spring-cloud-dependencies", version.ref = "springCloud" }
+
+# Spring artifacts the library needs. Each is used twice - compileOnly and testImplementation -
+# because consumers bring their own Spring; see the trap in CLAUDE.md.
+spring-boot-autoconfigure = { module = "org.springframework.boot:spring-boot-autoconfigure" }
+spring-cloud-context = { module = "org.springframework.cloud:spring-cloud-context" }
+jakarta-annotation-api = { module = "jakarta.annotation:jakarta.annotation-api" }
+
+spring-boot-starter = { module = "org.springframework.boot:spring-boot-starter" }
+spring-cloud-starter = { module = "org.springframework.cloud:spring-cloud-starter" }
+
+kotlin-logging = { module = "io.github.oshai:kotlin-logging-jvm", version.ref = "kotlinLogging" }
+slf4j-api = { module = "org.slf4j:slf4j-api" }
+logback-classic = { module = "ch.qos.logback:logback-classic" }
+
+spring-boot-test = { module = "org.springframework.boot:spring-boot-test" }
+spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
+mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+awaitility-kotlin = { module = "org.awaitility:awaitility-kotlin", version.ref = "awaitility" }
+assertj-core = { module = "org.assertj:assertj-core", version.ref = "assertj" }
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-spring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }
+spring-boot = { id = "org.springframework.boot", version.ref = "springBoot" }
+dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
