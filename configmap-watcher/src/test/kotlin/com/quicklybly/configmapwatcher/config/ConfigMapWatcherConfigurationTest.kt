@@ -85,9 +85,7 @@ class ConfigMapWatcherConfigurationTest {
     // End to end through the container: proves `spring.config.additional-location` really reaches
     // the watcher, which the bean-presence tests above cannot show.
     @Test
-    fun `watches the path bound from spring config additional-location`(
-        @TempDir tempDir: Path,
-    ) {
+    fun `watches the path bound from spring config additional-location`(@TempDir tempDir: Path) {
         val configFile = tempDir.resolve("application.yaml")
         configFile.writeText("greeting: hello")
 

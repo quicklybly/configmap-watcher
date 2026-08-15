@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.dokka)
+    id("lint-conventions")
     `maven-publish`
 }
 
@@ -39,11 +40,12 @@ java {
     withSourcesJar()
 }
 
-val javadocJar = tasks.register<Jar>("javadocJar") {
-    description = "Packages the Dokka HTML documentation as the -javadoc artifact."
-    archiveClassifier = "javadoc"
-    from(tasks.named("dokkaGeneratePublicationHtml"))
-}
+val javadocJar =
+    tasks.register<Jar>("javadocJar") {
+        description = "Packages the Dokka HTML documentation as the -javadoc artifact."
+        archiveClassifier = "javadoc"
+        from(tasks.named("dokkaGeneratePublicationHtml"))
+    }
 
 tasks.test {
     useJUnitPlatform()

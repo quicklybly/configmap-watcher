@@ -12,6 +12,4 @@ import org.springframework.stereotype.Component
  */
 @Component
 @RefreshScope
-class WatchedMessage(
-    @Value($$"${config-map.message:none}") val message: String,
-)
+class WatchedMessage(@Value($$"${config-map.message:none}") val message: String)

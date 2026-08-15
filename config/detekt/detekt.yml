@@ -1,0 +1,7 @@
+style:
+  MaxLineLength:
+    maxLineLength: 120
+
+performance:
+  SpreadOperator:
+    excludes: ['**/*Application.kt']
