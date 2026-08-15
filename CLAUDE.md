@@ -31,7 +31,27 @@ The root project is named `configmap-watcher-parent` so the library directory ca
 ./gradlew test --rerun-tasks    # force a re-run when the test task is UP-TO-DATE
 ```
 
-There is no linter configured.
+```bash
+./gradlew ktlintCheck      # formatting only, driven entirely by .editorconfig
+./gradlew ktlintFormat     # autofix everything ktlintCheck reports
+./gradlew detekt           # code smells; HTML report under <module>/build/reports/detekt/
+```
+
+Both run as part of `check`, so a plain `./gradlew build` fails on a violation.
+
+## Style and linting
+
+- **`.editorconfig` is the single source of truth for formatting**, and ktlint reads it directly.
+  It sets `ktlint_code_style = intellij_idea`, *not* ktlint's default `ktlint_official` - the latter
+  adds opinions IntelliJ's formatter does not have (it strips the blank line after a class header
+  and force-wraps chained calls), which would fight `.idea/codeStyles/Project.xml`, where the
+  project pins `KOTLIN_OFFICIAL`. Changing that one line reformats the whole codebase.
+- **detekt config lives in `config/detekt/detekt.yml` and holds overrides only**; each module sets
+  `buildUponDefaultConfig = true`, so unlisted rules keep detekt's defaults.
+- **detekt's `formatting` ruleset is deliberately absent.** It is a ktlint wrapper, and ktlint
+  already runs as its own plugin; adding `detekt-formatting` would report every violation twice.
+- Both plugins are applied per module, not through a `subprojects {}` block, matching the
+  convention above. Each module points `detekt.config` at the shared root file.
 
 ## Build conventions
 

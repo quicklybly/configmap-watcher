@@ -1,0 +1,16 @@
+# Overrides only. buildUponDefaultConfig = true in each module, so everything
+# not named here keeps detekt's default rule set and thresholds.
+#
+# The detekt-formatting ruleset (detekt's ktlint wrapper) is deliberately not on
+# the classpath: ktlint runs as its own plugin, driven by .editorconfig.
+
+style:
+  MaxLineLength:
+    # Matches max_line_length in .editorconfig.
+    maxLineLength: 120
+
+performance:
+  SpreadOperator:
+    # runApplication<T>(*args) is the Spring Boot entrypoint signature - the
+    # spread is required by the API, and it runs exactly once at startup.
+    excludes: ['**/*Application.kt']

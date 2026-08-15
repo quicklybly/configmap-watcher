@@ -1,6 +1,8 @@
 plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.dokka)
+    alias(libs.plugins.ktlint)
+    alias(libs.plugins.detekt)
     `maven-publish`
 }
 
@@ -35,15 +37,22 @@ kotlin {
     jvmToolchain(21)
 }
 
+detekt {
+    // Shared with test-application; there is no subprojects {} block, so each module points at it.
+    config.setFrom(rootProject.file("config/detekt/detekt.yml"))
+    buildUponDefaultConfig = true
+}
+
 java {
     withSourcesJar()
 }
 
-val javadocJar = tasks.register<Jar>("javadocJar") {
-    description = "Packages the Dokka HTML documentation as the -javadoc artifact."
-    archiveClassifier = "javadoc"
-    from(tasks.named("dokkaGeneratePublicationHtml"))
-}
+val javadocJar =
+    tasks.register<Jar>("javadocJar") {
+        description = "Packages the Dokka HTML documentation as the -javadoc artifact."
+        archiveClassifier = "javadoc"
+        from(tasks.named("dokkaGeneratePublicationHtml"))
+    }
 
 tasks.test {
     useJUnitPlatform()
