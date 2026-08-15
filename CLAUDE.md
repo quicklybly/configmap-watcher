@@ -6,12 +6,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A Spring Boot autoconfiguration library that watches Kubernetes ConfigMap mount paths and calls
 `ConfigDataContextRefresher.refresh()` when their contents change, so a pod picks up config changes without a restart.
-Two Gradle modules, each with its own `CLAUDE.md` covering its traps:
+Two Gradle modules, each with its own `CLAUDE.md` covering its traps, plus a Kubernetes test
+environment:
 
-| Module               | What it is                                                                                          |
+| Directory            | What it is                                                                                          |
 |----------------------|-----------------------------------------------------------------------------------------------------|
 | `configmap-watcher/` | The published library. No `main`. See `configmap-watcher/CLAUDE.md`.                                |
 | `test-application/`  | A Spring Boot app consuming the library, and the end to end test. See `test-application/CLAUDE.md`. |
+| `k8s/`               | Not a Gradle module: a kind cluster that proves the flow against a real kubelet. See `k8s/README.md`. |
+
+The three layers test progressively less simulated things: the library tests fake the kubelet's
+update shape in a temp directory and assert against a mocked refresher, `test-application`'s test
+proves a refresh really reaches a `@RefreshScope` bean but rewrites the file in place, and `k8s/`
+removes both fakes.
 
 The root project is named `configmap-watcher-parent` so the library directory can keep the name
 `configmap-watcher` and the published artifactId stays `com.quicklybly:configmap-watcher`.
@@ -36,9 +43,21 @@ The root project is named `configmap-watcher-parent` so the library directory ca
 ./gradlew ktlintFormat     # autofix everything ktlintCheck reports
 ./gradlew detekt           # code smells; HTML report under <module>/build/reports/detekt/
 ./gradlew lint             # both of the above
+./gradlew lintFormat       # autocorrect pass: ktlintFormat, then detektFormat
 ```
 
 Both run as part of `check`, so a plain `./gradlew build` fails on a violation.
+
+`lintFormat` is the only task in the build that rewrites sources, and nothing depends on it - it
+runs when you type it and never otherwise, so `check` and CI stay read-only. It fixes what ktlint
+can fix, then fails on the first detekt smell that needs a human; that failure list is the to-do.
+
+```bash
+k8s/up.sh                  # create the kind cluster, build and load the image, deploy
+k8s/set-message.sh hello   # change the watched value and watch the pod pick it up
+k8s/redeploy.sh            # rebuild the image and roll the deployment, after an app change
+k8s/down.sh                # delete the cluster
+```
 
 ## Style and linting
 
@@ -54,6 +73,20 @@ Both run as part of `check`, so a plain `./gradlew build` fails on a violation.
   plugin sets `buildUponDefaultConfig = true`, so unlisted rules keep detekt's defaults.
 - **detekt's `formatting` ruleset is deliberately absent.** It is a ktlint wrapper, and ktlint
   already runs as its own plugin; adding `detekt-formatting` would report every violation twice.
+- **`detektFormat` sets `autoCorrect = true`, and that corrects nothing today.** No ruleset detekt
+  bundles implements autocorrection - it lives entirely in `detekt-formatting`, which is absent for
+  the reason above, so every actual fix in `lintFormat` comes from ktlint. The task still earns its
+  place: it reports the smells ktlint cannot fix, and the wiring is already right if an
+  autocorrecting ruleset is ever added. Do not read `autoCorrect = true` as evidence it rewrites.
+- **`detektFormat` is a separate task, not `autoCorrect` on `detekt`.** Setting it on the shared
+  task would make every `check` - and so every CI run - rewrite tracked sources.
+- **`detektFormat` takes its source from the detekt *extension*, not from the `detekt` task.**
+  `tasks.named<Detekt>("detekt").map { it.source }` is the same file set, but Gradle infers a task
+  dependency on `detekt` from it, which closes a cycle against the `mustRunAfter` wiring below.
+- **The format/check ordering is wired on the task types, not the aggregates.** `ktlintCheck` and
+  `ktlintFormat` are lifecycle tasks, and `mustRunAfter` does not propagate to a task's
+  dependencies, so ordering the aggregates orders nothing and the real workers still race.
+  `KtLintCheckTask` and `KtLintFormatTask` are what carry the constraint.
 - **`check` depends on a `lint` aggregate task, and `test` declares `mustRunAfter(lint)`.** Without
   it the linters and `test` are unordered siblings under `check` and lint winning the race is
   incidental. `mustRunAfter` orders without adding a dependency, so `./gradlew test` on its own
@@ -73,6 +106,8 @@ leak, so both can coexist.
 imports `gradle/libs.versions.toml` itself. It applies plugins by id rather than by alias, so each
 one is declared in `build-logic/build.gradle.kts` as its marker artifact
 (`<id>:<id>.gradle.plugin:<version>`) with the version still read from the catalog.
+The Kubernetes environment is driven by scripts, not Gradle - the image builds the application from
+source itself, so nothing has to be built on the host first:
 
 ## Build conventions
 

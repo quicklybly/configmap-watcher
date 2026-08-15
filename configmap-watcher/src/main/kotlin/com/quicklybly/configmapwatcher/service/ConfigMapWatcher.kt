@@ -3,7 +3,7 @@ package com.quicklybly.configmapwatcher.service
 /**
  * Watches the configured config map locations and refreshes the Spring context when they change.
  *
- * The auto configuration backs off as soon as any [ConfigMapWatcher] bean is present, so declaring
+ * The autoconfiguration backs off as soon as any [ConfigMapWatcher] bean is present, so declaring
  * your own implementation replaces the default one.
  */
 interface ConfigMapWatcher : AutoCloseable {

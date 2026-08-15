@@ -22,8 +22,6 @@ class FileSystemConfigMapWatcherTest {
     private val contextRefresher = mockk<ConfigDataContextRefresher>(relaxed = true)
     private val startedWatchers = mutableListOf<ConfigMapWatcher>()
 
-    // Watcher threads outlive the test otherwise: they keep polling the (now deleted) @TempDir and
-    // firing refreshes into a mock nobody looks at anymore
     @AfterEach
     fun stopWatchers() = startedWatchers.forEach { it.close() }
 
@@ -31,8 +29,6 @@ class FileSystemConfigMapWatcherTest {
         .also { startedWatchers += it }
         .apply { startWatchingConfigMaps() }
 
-    // Generous by design: macOS has no native file watcher, so the JDK falls back to
-    // PollingWatchService and a change surfaces only on the next poll tick.
     private fun awaitRefresh() = await.atMost(Duration.ofSeconds(30))
         .pollInterval(Duration.ofMillis(250))
         .untilAsserted { verify(atLeast = 1) { contextRefresher.refresh() } }
@@ -89,9 +85,6 @@ class FileSystemConfigMapWatcherTest {
         assertThat(Files.readString(configFile)).isEqualTo("greeting: goodbye")
     }
 
-    // One file per test rather than one test touching both: the refresher is a single mock, so a
-    // test that changed both files could not tell "each path is watched" apart from "one path is
-    // watched, and it emitted two events".
     @Test
     fun `watches the first of several comma separated paths`(@TempDir tempDir: Path) {
         val (firstFile, secondFile) = twoConfigFiles(tempDir)

@@ -1,0 +1,12 @@
+# The image build uses the repository root as its context (see test-application/Dockerfile), so keep
+# everything the Gradle build does not read out of it.
+.git
+.gradle
+.kotlin
+.idea
+.claude
+build
+**/build
+k8s
+*.md
+.DS_Store

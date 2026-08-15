@@ -37,10 +37,6 @@ class FileSystemConfigMapWatcher(
         paths.forEach { watchConfig(it) }
     }
 
-    /**
-     * Closing the watch services unblocks the polling threads, which then terminate on their own.
-     * Spring calls this on context shutdown; it is safe to call more than once
-     */
     @PreDestroy
     override fun close() {
         watchers.forEach { watcher ->

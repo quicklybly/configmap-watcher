@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-application
+  labels:
+    app: test-application
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: test-application
+  template:
+    metadata:
+      labels:
+        app: test-application
+    spec:
+      containers:
+        - name: test-application
+          image: configmap-watcher-test-app:local
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: SPRING_CONFIG_ADDITIONALLOCATION
+              value: /config/application.yaml
+          volumeMounts:
+            - name: config
+              mountPath: /config
+          readinessProbe:
+            httpGet:
+              path: /message
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 3
+            failureThreshold: 20
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              memory: 768Mi
+      volumes:
+        - name: config
+          configMap:
+            name: test-application-config

@@ -16,8 +16,7 @@ import org.springframework.context.annotation.Bean
     matchIfMissing = false,
 )
 class ConfigMapWatcherConfiguration {
-    // The declared return type is the interface on purpose: @ConditionalOnMissingBean keys off it,
-    // so a user-declared ConfigMapWatcher bean of any implementation makes this one back off.
+
     @Bean
     @ConditionalOnMissingBean
     fun configMapWatcher(

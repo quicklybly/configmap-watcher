@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: test-application-config
+  labels:
+    app: test-application
+data:
+  application.yaml: |
+    config-map:
+      message: initial
