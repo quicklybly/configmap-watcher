@@ -3,4 +3,5 @@ plugins {
     alias(libs.plugins.kotlin.spring) apply false
     alias(libs.plugins.spring.boot) apply false
     alias(libs.plugins.dokka) apply false
+    alias(libs.plugins.maven.publish) apply false
 }

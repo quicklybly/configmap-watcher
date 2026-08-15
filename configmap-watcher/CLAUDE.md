@@ -28,7 +28,10 @@ Paths come from `spring.config.additional-location`, comma separated, trimmed, e
   application` is what catches this.
 - **Spring dependencies are `compileOnly` and duplicated as `testImplementation`.** Consumers bring
   their own Spring; adding a new Spring dependency means a catalog entry plus both lines in
-  `build.gradle.kts`.
+  `build.gradle.kts`. **The BOMs are declared the same way** - `implementation(platform(...))` would
+  leak Spring version constraints to every Gradle consumer through `runtimeElements`, invisibly to
+  Maven ones. Anything published at runtime scope therefore needs its own catalog version, which is
+  why `slf4j-api` pins one and the Spring entries do not.
 - **`refresh()` fires once per watch event, not once per change.** A single write can produce
   several consecutive refreshes; a kubelet symlink swap produces more. Known and uncoalesced.
 - **The configured path must be a plain filesystem path.** `watchConfig` does `File(path)`, so a
