@@ -14,6 +14,7 @@ environment:
 | `configmap-watcher/` | The published library. No `main`. See `configmap-watcher/CLAUDE.md`.                                |
 | `test-application/`  | A Spring Boot app consuming the library, and the end to end test. See `test-application/CLAUDE.md`. |
 | `k8s/`               | Not a Gradle module: a kind cluster that proves the flow against a real kubelet. See `k8s/README.md`. |
+| `.github/workflows/` | `ci.yml` runs `./gradlew build` on every PR; `release.yml` fires on a `v*` tag. See "Publishing".     |
 
 The three layers test progressively less simulated things: the library tests fake the kubelet's
 update shape in a temp directory and assert against a mocked refresher, `test-application`'s test
@@ -21,7 +22,12 @@ proves a refresh really reaches a `@RefreshScope` bean but rewrites the file in 
 removes both fakes.
 
 The root project is named `configmap-watcher-parent` so the library directory can keep the name
-`configmap-watcher` and the published artifactId stays `com.quicklybly:configmap-watcher`.
+`configmap-watcher` and the published artifactId stays `io.github.quicklybly:configmap-watcher`.
+
+The `io.github.` prefix is not cosmetic: it is the namespace Maven Central auto-verifies for a
+GitHub-linked account, which is what makes publishing possible without owning a domain. The Kotlin
+packages match it (`io.github.quicklybly.configmapwatcher.*`) - `com.quicklybly` would claim a
+domain nobody owns.
 
 ## Commands
 
@@ -31,6 +37,7 @@ The root project is named `configmap-watcher-parent` so the library directory ca
 ./gradlew :test-application:test         # end to end test only
 ./gradlew :test-application:bootRun      # run the app (watcher logs "disabled" without a location)
 ./gradlew publishToMavenLocal            # jar + -sources + -javadoc + pom into ~/.m2
+./gradlew publishToMavenLocal -Pversion=0.1.0-RC1   # exactly what CI publishes, under a real version
 
 ./gradlew test --tests '*ConfigMapWatcherConfigurationTest'                       # one class
 ./gradlew test --tests '*FileSystemConfigMapWatcherTest.watches the last of several comma separated paths'   # one method (backtick names work quoted)
@@ -119,18 +126,82 @@ source itself, so nothing has to be built on the host first:
   repeats them.
 - Both modules import the Spring Boot and Spring Cloud BOMs as `platform(...)` dependencies, so most catalog entries
   carry no version of their own.
+- **In the library those BOMs are `compileOnly` plus `testImplementation`, never `implementation`.**
+  `implementation(platform(...))` puts them in `runtimeElements`, and every Gradle consumer then
+  inherits Spring Boot and Spring Cloud version constraints from a library whose whole premise is
+  that consumers bring their own Spring. Maven consumers never see it - `dependencyManagement` is
+  not transitive - so the POM looks fine and only Gradle resolution is affected. They are declared
+  twice because `testImplementation` extends `implementation`, not `compileOnly`.
+- **`slf4j-api` therefore pins its version in the catalog**, unlike the other Spring-managed
+  entries. It is a published runtime dependency, so it cannot borrow a version from a BOM that is
+  deliberately kept out of consumers' resolution; without the pin it publishes with no `<version>`
+  at all. Bump it together with `springBoot`.
+
+## Versioning and release policy
+
+Strict SemVer, with a `v`-prefixed git tag as the **single source of truth for the version**.
+
+```
+v0.1.0-RC1   ->  0.1.0-RC1     release candidate
+v0.1.0       ->  0.1.0         release
+v0.1.1       ->  0.1.1         patch
+```
+
+- **No commit ever carries a release version.** `gradle.properties` stays on `0.1.0-SNAPSHOT` for
+  local work; the release workflow passes `-Pversion=<tag minus v>`, which overrides it. Nothing has
+  to be committed, bumped or reverted to cut a release.
+- `release.yml` enforces `^v[0-9]+\.[0-9]+\.[0-9]+(-RC[0-9]+)?$` and fails on anything else, so a
+  typo cannot become a permanent Central version. The `RC` is case sensitive.
+- `RC` is a qualifier both Maven's `ComparableVersion` and Gradle's version ordering rank *below*
+  the matching release, so `0.1.0-RC1 < 0.1.0` and a candidate never wins a version comparison.
+- **Pre-1.0, breaking changes may land in a minor bump.** From `1.0.0` on, strict SemVer.
+- **No snapshots are published.** Tags are the only publish trigger. `test-application` depends on
+  `project(":configmap-watcher")`, so local development never needs one.
+
+Cutting a release: update `CHANGELOG.md`, tag `v0.1.0-RC1`, let it through both gates, iterate as
+`-RC2`/`-RC3` if needed, then tag `v0.1.0`. Patches may skip the RC step.
 
 ## Publishing
 
-`configmap-watcher/build.gradle.kts` publishes four artifacts: the jar, `-sources` (via
-`java { withSourcesJar() }`), `-javadoc` (a `Jar` task packaging Dokka's HTML output), and a POM.
+Published to **Maven Central** as `io.github.quicklybly:configmap-watcher` — four artifacts (jar,
+`-sources`, `-javadoc`, POM) plus Gradle module metadata, driven by
+`com.vanniktech.maven.publish` in `configmap-watcher/build.gradle.kts`.
 
+- **Two manual gates stand between a tag and a public release, by design.** Gate 1 is the
+  `maven-central` GitHub Environment, whose required reviewers hold the `publish` job. Gate 2 is
+  Central's own: `publishToMavenCentral()` is called *without* `automaticRelease`, so the upload
+  validates and then waits in the Portal until a human clicks Publish. Adding
+  `automaticRelease = true` would remove the last stop before something permanent and undeletable.
+- **A `VALIDATED` deployment can be dropped**, which is why gate 2 is worth more than gate 1: by the
+  time you decide, you already know the artifacts built, signed and passed Central's validation.
+  This is also how to dry-run the whole pipeline — tag an RC, let it upload, then drop it.
+- **Gate 1 is inert while the repo is private.** Environment protection rules need GitHub Pro on a
+  private user-account repo. Without them GitHub silently auto-creates the environment *without*
+  rules and the job runs straight through — no error, no pause. It starts working when the repo goes
+  public, with no workflow change.
+- **`signAllPublications()` is guarded on `signingInMemoryKey` being present.** Unconditional
+  signing breaks `publishToMavenLocal` for anyone without a GPG key. CI always has the key, and
+  `release.yml` checks all four secrets up front so a missing one fails there rather than at Central.
 - **Dokka runs in V2 mode**, which is the default from 2.1.0 - hence the task name
-  `dokkaGeneratePublicationHtml`. Under 2.0.0 the plugin silently falls back to V1, where that task does not exist and
-  the build fails.
+  `dokkaGeneratePublicationHtml`, which is handed to `JavadocJar.Dokka(...)`. Under 2.0.0 the plugin
+  silently falls back to V1, where that task does not exist and the build fails. The publish plugin
+  dropped Dokka v1 support entirely, so V2 is not optional here.
 - **The POM metadata blocks (`name`, `description`, `url`, `licences`, `developers`, `scm`) exist because Maven Central
   rejects bundles without them**, not because anything reads them at build time. `scm` mirrors the `origin` remote.
 - **`compileOnly` dependencies are deliberately absent from the POM** - consumers bring their own Spring. Only
-  `kotlin-stdlib`, `kotlin-logging` and `slf4j-api` are declared.
-- Central would additionally need signed artifacts and portal credentials; neither is configured. There is no `LICENSE`
-  file in the repo yet, though the POM declares MIT.
+  `kotlin-stdlib`, `kotlin-logging` and `slf4j-api` are declared. Verify with
+  `./gradlew publishToMavenLocal -Pversion=0.1.0-RC1` and read the generated `.pom` and `.module`;
+  the `.module` is where a platform leak shows up first.
+
+### One-time setup, outside the repo
+
+Publishing cannot work until these exist; none of them are in version control.
+
+1. A Central Portal account signed in **with GitHub**, which auto-verifies `io.github.quicklybly`.
+2. A **user token** generated in the Portal - not the login password.
+3. A GPG key whose **public half is pushed to a keyserver** (`keys.openpgp.org` or
+   `keyserver.ubuntu.com`). Central validates signatures against it and fails the deployment if the
+   key cannot be found.
+4. Repository secrets `MAVEN_CENTRAL_USERNAME`, `MAVEN_CENTRAL_PASSWORD`, `GPG_PRIVATE_KEY`
+   (ASCII-armored) and `GPG_PASSPHRASE`.
+5. A `maven-central` environment with a required reviewer (see the gate 1 caveat above).

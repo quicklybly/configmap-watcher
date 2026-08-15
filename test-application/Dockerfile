@@ -5,6 +5,7 @@ WORKDIR /workspace
 COPY gradlew ./
 COPY gradle ./gradle
 COPY settings.gradle.kts build.gradle.kts gradle.properties ./
+COPY build-logic ./build-logic
 COPY configmap-watcher/build.gradle.kts configmap-watcher/
 COPY test-application/build.gradle.kts test-application/
 

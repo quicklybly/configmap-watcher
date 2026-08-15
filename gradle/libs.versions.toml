@@ -3,9 +3,11 @@ kotlin = "2.4.0"
 dokka = "2.1.0"
 ktlint = "13.1.0"
 detekt = "1.23.8"
+mavenPublish = "0.37.0"
 springBoot = "4.1.0"
 springCloud = "2025.1.2"
 kotlinLogging = "7.0.3"
+slf4j = "2.0.18"
 mockk = "1.14.11"
 awaitility = "4.3.0"
 assertj = "3.27.7"
@@ -23,7 +25,7 @@ spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-start
 spring-cloud-starter = { module = "org.springframework.cloud:spring-cloud-starter" }
 
 kotlin-logging = { module = "io.github.oshai:kotlin-logging-jvm", version.ref = "kotlinLogging" }
-slf4j-api = { module = "org.slf4j:slf4j-api" }
+slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 logback-classic = { module = "ch.qos.logback:logback-classic" }
 
 spring-boot-test = { module = "org.springframework.boot:spring-boot-test" }
@@ -39,3 +41,4 @@ spring-boot = { id = "org.springframework.boot", version.ref = "springBoot" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
+maven-publish = { id = "com.vanniktech.maven.publish", version.ref = "mavenPublish" }
