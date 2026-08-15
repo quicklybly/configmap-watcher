@@ -1,4 +1,4 @@
-package com.quicklybly.configmapwatcher.testapp
+package io.github.quicklybly.configmapwatcher.testapp
 
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await

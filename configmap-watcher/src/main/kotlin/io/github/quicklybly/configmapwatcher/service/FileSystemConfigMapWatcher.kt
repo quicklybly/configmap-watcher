@@ -1,4 +1,4 @@
-package com.quicklybly.configmapwatcher.service
+package io.github.quicklybly.configmapwatcher.service
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.annotation.PostConstruct

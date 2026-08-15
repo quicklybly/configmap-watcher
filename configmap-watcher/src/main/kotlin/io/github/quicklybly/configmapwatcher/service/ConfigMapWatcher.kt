@@ -1,4 +1,4 @@
-package com.quicklybly.configmapwatcher.service
+package io.github.quicklybly.configmapwatcher.service
 
 /**
  * Watches the configured config map locations and refreshes the Spring context when they change.

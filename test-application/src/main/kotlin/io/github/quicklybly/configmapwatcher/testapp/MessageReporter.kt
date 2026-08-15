@@ -1,4 +1,4 @@
-package com.quicklybly.configmapwatcher.testapp
+package io.github.quicklybly.configmapwatcher.testapp
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.scheduling.annotation.Scheduled

@@ -1,7 +1,7 @@
-package com.quicklybly.configmapwatcher.config
+package io.github.quicklybly.configmapwatcher.config
 
-import com.quicklybly.configmapwatcher.service.ConfigMapWatcher
-import com.quicklybly.configmapwatcher.service.FileSystemConfigMapWatcher
+import io.github.quicklybly.configmapwatcher.service.ConfigMapWatcher
+import io.github.quicklybly.configmapwatcher.service.FileSystemConfigMapWatcher
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.AutoConfiguration
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean

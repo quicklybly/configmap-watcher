@@ -1,7 +1,7 @@
-package com.quicklybly.configmapwatcher.config
+package io.github.quicklybly.configmapwatcher.config
 
-import com.quicklybly.configmapwatcher.service.ConfigMapWatcher
-import com.quicklybly.configmapwatcher.service.FileSystemConfigMapWatcher
+import io.github.quicklybly.configmapwatcher.service.ConfigMapWatcher
+import io.github.quicklybly.configmapwatcher.service.FileSystemConfigMapWatcher
 import io.mockk.called
 import io.mockk.mockk
 import io.mockk.verify

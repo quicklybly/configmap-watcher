@@ -1,4 +1,4 @@
-package com.quicklybly.configmapwatcher.service
+package io.github.quicklybly.configmapwatcher.service
 
 import io.mockk.called
 import io.mockk.mockk

@@ -1,4 +1,4 @@
-package com.quicklybly.configmapwatcher.testapp
+package io.github.quicklybly.configmapwatcher.testapp
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.EnableConfigurationProperties
