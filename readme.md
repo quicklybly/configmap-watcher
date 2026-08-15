@@ -5,4 +5,3 @@ todo:
 - [ ] signing the commit 
 - [ ] publication
 - [ ] changelog
-- [ ] formatting tool + editorconfig
