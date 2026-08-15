@@ -25,15 +25,13 @@ class FileSystemConfigMapWatcherTest {
     @AfterEach
     fun stopWatchers() = startedWatchers.forEach { it.close() }
 
-    private fun startWatching(configPath: String) =
-        FileSystemConfigMapWatcher(contextRefresher, configPath)
-            .also { startedWatchers += it }
-            .apply { startWatchingConfigMaps() }
+    private fun startWatching(configPath: String) = FileSystemConfigMapWatcher(contextRefresher, configPath)
+        .also { startedWatchers += it }
+        .apply { startWatchingConfigMaps() }
 
-    private fun awaitRefresh() =
-        await.atMost(Duration.ofSeconds(30))
-            .pollInterval(Duration.ofMillis(250))
-            .untilAsserted { verify(atLeast = 1) { contextRefresher.refresh() } }
+    private fun awaitRefresh() = await.atMost(Duration.ofSeconds(30))
+        .pollInterval(Duration.ofMillis(250))
+        .untilAsserted { verify(atLeast = 1) { contextRefresher.refresh() } }
 
     @Test
     fun `does nothing when config path is empty`() {
@@ -43,9 +41,7 @@ class FileSystemConfigMapWatcherTest {
     }
 
     @Test
-    fun `refreshes context when a watched file is written in place`(
-        @TempDir tempDir: Path,
-    ) {
+    fun `refreshes context when a watched file is written in place`(@TempDir tempDir: Path) {
         val configFile = tempDir.resolve("application.yaml")
         configFile.writeText("greeting: hello")
 
@@ -57,9 +53,7 @@ class FileSystemConfigMapWatcherTest {
     }
 
     @Test
-    fun `refreshes context on a kubernetes-style atomic configmap swap`(
-        @TempDir tempDir: Path,
-    ) {
+    fun `refreshes context on a kubernetes-style atomic configmap swap`(@TempDir tempDir: Path) {
         val key = "application.yaml"
 
         // Mimic how kubelet mounts a ConfigMap: a timestamped data dir holding the real files,
@@ -82,7 +76,8 @@ class FileSystemConfigMapWatcherTest {
         Files.move(
             tmpLink,
             dataLink,
-            StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING
+            StandardCopyOption.ATOMIC_MOVE,
+            StandardCopyOption.REPLACE_EXISTING,
         )
         firstDataDir.toFile().deleteRecursively()
 
@@ -91,9 +86,7 @@ class FileSystemConfigMapWatcherTest {
     }
 
     @Test
-    fun `watches the first of several comma separated paths`(
-        @TempDir tempDir: Path,
-    ) {
+    fun `watches the first of several comma separated paths`(@TempDir tempDir: Path) {
         val (firstFile, secondFile) = twoConfigFiles(tempDir)
 
         startWatching("$firstFile, $secondFile")
@@ -104,9 +97,7 @@ class FileSystemConfigMapWatcherTest {
     }
 
     @Test
-    fun `watches the last of several comma separated paths`(
-        @TempDir tempDir: Path,
-    ) {
+    fun `watches the last of several comma separated paths`(@TempDir tempDir: Path) {
         val (firstFile, secondFile) = twoConfigFiles(tempDir)
 
         startWatching("$firstFile, $secondFile")

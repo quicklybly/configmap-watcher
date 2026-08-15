@@ -43,9 +43,14 @@ The root project is named `configmap-watcher-parent` so the library directory ca
 ./gradlew ktlintFormat     # autofix everything ktlintCheck reports
 ./gradlew detekt           # code smells; HTML report under <module>/build/reports/detekt/
 ./gradlew lint             # both of the above
+./gradlew lintFormat       # autocorrect pass: ktlintFormat, then detektFormat
 ```
 
 Both run as part of `check`, so a plain `./gradlew build` fails on a violation.
+
+`lintFormat` is the only task in the build that rewrites sources, and nothing depends on it - it
+runs when you type it and never otherwise, so `check` and CI stay read-only. It fixes what ktlint
+can fix, then fails on the first detekt smell that needs a human; that failure list is the to-do.
 
 ```bash
 k8s/up.sh                  # create the kind cluster, build and load the image, deploy
@@ -68,6 +73,20 @@ k8s/down.sh                # delete the cluster
   plugin sets `buildUponDefaultConfig = true`, so unlisted rules keep detekt's defaults.
 - **detekt's `formatting` ruleset is deliberately absent.** It is a ktlint wrapper, and ktlint
   already runs as its own plugin; adding `detekt-formatting` would report every violation twice.
+- **`detektFormat` sets `autoCorrect = true`, and that corrects nothing today.** No ruleset detekt
+  bundles implements autocorrection - it lives entirely in `detekt-formatting`, which is absent for
+  the reason above, so every actual fix in `lintFormat` comes from ktlint. The task still earns its
+  place: it reports the smells ktlint cannot fix, and the wiring is already right if an
+  autocorrecting ruleset is ever added. Do not read `autoCorrect = true` as evidence it rewrites.
+- **`detektFormat` is a separate task, not `autoCorrect` on `detekt`.** Setting it on the shared
+  task would make every `check` - and so every CI run - rewrite tracked sources.
+- **`detektFormat` takes its source from the detekt *extension*, not from the `detekt` task.**
+  `tasks.named<Detekt>("detekt").map { it.source }` is the same file set, but Gradle infers a task
+  dependency on `detekt` from it, which closes a cycle against the `mustRunAfter` wiring below.
+- **The format/check ordering is wired on the task types, not the aggregates.** `ktlintCheck` and
+  `ktlintFormat` are lifecycle tasks, and `mustRunAfter` does not propagate to a task's
+  dependencies, so ordering the aggregates orders nothing and the real workers still race.
+  `KtLintCheckTask` and `KtLintFormatTask` are what carry the constraint.
 - **`check` depends on a `lint` aggregate task, and `test` declares `mustRunAfter(lint)`.** Without
   it the linters and `test` are unordered siblings under `check` and lint winning the race is
   incidental. `mustRunAfter` orders without adding a dependency, so `./gradlew test` on its own
