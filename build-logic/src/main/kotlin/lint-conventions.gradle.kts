@@ -10,6 +10,16 @@ detekt {
     buildUponDefaultConfig = true
 }
 
+val lint = tasks.register("lint") {
+    group = "verification"
+    description = "Runs ktlint and detekt."
+    dependsOn(tasks.named("ktlintCheck"), tasks.named("detekt"))
+}
+
+tasks.named("check") {
+    dependsOn(lint)
+}
+
 tasks.withType<Test>().configureEach {
-    shouldRunAfter("ktlintCheck", "detekt")
+    mustRunAfter(lint)
 }

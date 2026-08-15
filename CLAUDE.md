@@ -35,6 +35,7 @@ The root project is named `configmap-watcher-parent` so the library directory ca
 ./gradlew ktlintCheck      # formatting only, driven entirely by .editorconfig
 ./gradlew ktlintFormat     # autofix everything ktlintCheck reports
 ./gradlew detekt           # code smells; HTML report under <module>/build/reports/detekt/
+./gradlew lint             # both of the above
 ```
 
 Both run as part of `check`, so a plain `./gradlew build` fails on a violation.
@@ -53,9 +54,10 @@ Both run as part of `check`, so a plain `./gradlew build` fails on a violation.
   plugin sets `buildUponDefaultConfig = true`, so unlisted rules keep detekt's defaults.
 - **detekt's `formatting` ruleset is deliberately absent.** It is a ktlint wrapper, and ktlint
   already runs as its own plugin; adding `detekt-formatting` would report every violation twice.
-- **The linters are ordered before `test` by `shouldRunAfter`.** Under `check` they are otherwise
-  unordered siblings, and lint winning the race is incidental. `shouldRunAfter` is a soft
-  constraint, so `./gradlew test` on its own still runs no linters.
+- **`check` depends on a `lint` aggregate task, and `test` declares `mustRunAfter(lint)`.** Without
+  it the linters and `test` are unordered siblings under `check` and lint winning the race is
+  incidental. `mustRunAfter` orders without adding a dependency, so `./gradlew test` on its own
+  still runs no linters - the ordering only applies when both are already in the task graph.
 
 ### Why `build-logic`, not `buildSrc`
 
