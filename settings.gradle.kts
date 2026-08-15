@@ -1,3 +1,8 @@
+pluginManagement {
+    // Supplies the lint-conventions plugin both modules apply.
+    includeBuild("build-logic")
+}
+
 plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
 }

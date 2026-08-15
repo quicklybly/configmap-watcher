@@ -1,8 +1,7 @@
 plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.dokka)
-    alias(libs.plugins.ktlint)
-    alias(libs.plugins.detekt)
+    id("lint-conventions")
     `maven-publish`
 }
 
@@ -35,12 +34,6 @@ dependencies {
 
 kotlin {
     jvmToolchain(21)
-}
-
-detekt {
-    // Shared with test-application; there is no subprojects {} block, so each module points at it.
-    config.setFrom(rootProject.file("config/detekt/detekt.yml"))
-    buildUponDefaultConfig = true
 }
 
 java {
