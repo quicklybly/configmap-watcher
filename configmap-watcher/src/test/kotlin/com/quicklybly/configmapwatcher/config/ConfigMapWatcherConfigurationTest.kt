@@ -60,8 +60,6 @@ class ConfigMapWatcherConfigurationTest {
         }
     }
 
-    // The config path is optional: with no `spring.config.additional-location` the bean is still
-    // created, it just has nothing to watch - so the context must start rather than fail to bind.
     @Test
     fun `defaults the config path to empty`() {
         contextRunner.withPropertyValues("config-map-watcher.enabled=true").run { context ->
@@ -82,8 +80,6 @@ class ConfigMapWatcherConfigurationTest {
             }
     }
 
-    // End to end through the container: proves `spring.config.additional-location` really reaches
-    // the watcher, which the bean-presence tests above cannot show.
     @Test
     fun `watches the path bound from spring config additional-location`(@TempDir tempDir: Path) {
         val configFile = tempDir.resolve("application.yaml")
@@ -99,8 +95,6 @@ class ConfigMapWatcherConfigurationTest {
 
                 configFile.writeText("greeting: goodbye")
 
-                // Generous by design: macOS has no native file watcher, so the JDK falls back to
-                // PollingWatchService and a change surfaces only on the next poll tick.
                 await.atMost(Duration.ofSeconds(30))
                     .pollInterval(Duration.ofMillis(250))
                     .untilAsserted { verify(atLeast = 1) { contextRefresher.refresh() } }

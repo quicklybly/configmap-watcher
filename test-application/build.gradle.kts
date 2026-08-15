@@ -1,5 +1,3 @@
-// A real Spring Boot application that consumes the library, so the auto configuration, the
-// AutoConfiguration.imports entry and the actual context refresh are exercised end to end.
 plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.kotlin.spring)
@@ -17,7 +15,6 @@ dependencies {
 
     implementation(project(":configmap-watcher"))
     implementation(libs.spring.boot.starter)
-    // Supplies the ConfigDataContextRefresher the library's @Bean needs.
     implementation(libs.spring.cloud.starter)
 
     testImplementation(kotlin("test"))

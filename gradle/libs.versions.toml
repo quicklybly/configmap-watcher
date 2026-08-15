@@ -11,12 +11,9 @@ awaitility = "4.3.0"
 assertj = "3.27.7"
 
 [libraries]
-# Platforms. Every module imports both so versions below can stay unspecified.
 spring-boot-bom = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "springBoot" }
 spring-cloud-bom = { module = "org.springframework.cloud:spring-cloud-dependencies", version.ref = "springCloud" }
 
-# Spring artifacts the library needs. Each is used twice - compileOnly and testImplementation -
-# because consumers bring their own Spring; see the trap in CLAUDE.md.
 spring-boot-autoconfigure = { module = "org.springframework.boot:spring-boot-autoconfigure" }
 spring-cloud-context = { module = "org.springframework.cloud:spring-cloud-context" }
 jakarta-annotation-api = { module = "jakarta.annotation:jakarta.annotation-api" }
