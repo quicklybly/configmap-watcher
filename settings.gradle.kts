@@ -1,5 +1,4 @@
 pluginManagement {
-    // Supplies the lint-conventions plugin both modules apply.
     includeBuild("build-logic")
 }
 
