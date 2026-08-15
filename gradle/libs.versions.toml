@@ -19,6 +19,7 @@ spring-cloud-context = { module = "org.springframework.cloud:spring-cloud-contex
 jakarta-annotation-api = { module = "jakarta.annotation:jakarta.annotation-api" }
 
 spring-boot-starter = { module = "org.springframework.boot:spring-boot-starter" }
+spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web" }
 spring-cloud-starter = { module = "org.springframework.cloud:spring-cloud-starter" }
 
 kotlin-logging = { module = "io.github.oshai:kotlin-logging-jvm", version.ref = "kotlinLogging" }

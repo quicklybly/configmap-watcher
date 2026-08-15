@@ -6,12 +6,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A Spring Boot autoconfiguration library that watches Kubernetes ConfigMap mount paths and calls
 `ConfigDataContextRefresher.refresh()` when their contents change, so a pod picks up config changes without a restart.
-Two Gradle modules, each with its own `CLAUDE.md` covering its traps:
+Two Gradle modules, each with its own `CLAUDE.md` covering its traps, plus a Kubernetes test
+environment:
 
-| Module               | What it is                                                                                          |
+| Directory            | What it is                                                                                          |
 |----------------------|-----------------------------------------------------------------------------------------------------|
 | `configmap-watcher/` | The published library. No `main`. See `configmap-watcher/CLAUDE.md`.                                |
 | `test-application/`  | A Spring Boot app consuming the library, and the end to end test. See `test-application/CLAUDE.md`. |
+| `k8s/`               | Not a Gradle module: a kind cluster that proves the flow against a real kubelet. See `k8s/README.md`. |
+
+The three layers test progressively less simulated things: the library tests fake the kubelet's
+update shape in a temp directory and assert against a mocked refresher, `test-application`'s test
+proves a refresh really reaches a `@RefreshScope` bean but rewrites the file in place, and `k8s/`
+removes both fakes.
 
 The root project is named `configmap-watcher-parent` so the library directory can keep the name
 `configmap-watcher` and the published artifactId stays `com.quicklybly:configmap-watcher`.
@@ -39,6 +46,13 @@ The root project is named `configmap-watcher-parent` so the library directory ca
 ```
 
 Both run as part of `check`, so a plain `./gradlew build` fails on a violation.
+
+```bash
+k8s/up.sh                  # create the kind cluster, build and load the image, deploy
+k8s/set-message.sh hello   # change the watched value and watch the pod pick it up
+k8s/redeploy.sh            # rebuild the image and roll the deployment, after an app change
+k8s/down.sh                # delete the cluster
+```
 
 ## Style and linting
 
@@ -73,6 +87,8 @@ leak, so both can coexist.
 imports `gradle/libs.versions.toml` itself. It applies plugins by id rather than by alias, so each
 one is declared in `build-logic/build.gradle.kts` as its marker artifact
 (`<id>:<id>.gradle.plugin:<version>`) with the version still read from the catalog.
+The Kubernetes environment is driven by scripts, not Gradle - the image builds the application from
+source itself, so nothing has to be built on the host first:
 
 ## Build conventions
 

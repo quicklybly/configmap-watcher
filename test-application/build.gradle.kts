@@ -15,7 +15,10 @@ dependencies {
 
     implementation(project(":configmap-watcher"))
     implementation(libs.spring.boot.starter)
+    implementation(libs.spring.boot.starter.web)
     implementation(libs.spring.cloud.starter)
+    implementation(libs.kotlin.logging)
+    implementation(kotlin("reflect"))
 
     testImplementation(kotlin("test"))
     testImplementation(libs.spring.boot.starter.test)
@@ -27,6 +30,14 @@ kotlin {
     jvmToolchain(21)
 }
 
+allOpen {
+    annotation("org.springframework.cloud.context.config.annotation.RefreshScope")
+}
+
 tasks.test {
     useJUnitPlatform()
+}
+
+tasks.bootJar {
+    archiveFileName.set("test-application.jar")
 }

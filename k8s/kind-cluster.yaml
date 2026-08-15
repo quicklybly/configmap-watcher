@@ -1,0 +1,11 @@
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: configmap-watcher
+nodes:
+  - role: control-plane
+    kubeadmConfigPatches:
+      # default sync frequency is 60s
+      - |
+        kind: KubeletConfiguration
+        syncFrequency: 10s
+        configMapAndSecretChangeDetectionStrategy: Watch
